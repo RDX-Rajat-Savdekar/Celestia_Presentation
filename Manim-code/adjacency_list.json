@@ -1,0 +1,6 @@
+{
+    "Rigel": ["Saiph", "Mintaka"],
+    "Betelgeuse": ["Bellatrix", "Alnitak"],
+    "Bellatrix": ["Mintaka", "Betelgeuse"],
+    "Saiph": ["Rigel", "Alnitak"]
+}
