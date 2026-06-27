@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Celestia — Presentation</title>
+  <meta name="description" content="Manim animated explainer of the CelestiaVR rendering pipeline for Quest 3 stargazing.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Celestia VR — Rendering Pipeline">
+  <meta property="og:description" content="Technical presentation: sphere projection, magnitude filtering, coordinate transforms, B-V coloring, and spatial search.">
+  <meta property="og:image" content="https://rdx-rajat-savdekar.github.io/Celestia_Presentation/posters/scene0.jpg">
+  <meta property="og:url" content="https://rdx-rajat-savdekar.github.io/Celestia_Presentation/deck.html">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="posters/scene0.jpg">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="deck-body">
+
+  <video id="player" muted playsinline></video>
+
+  <button type="button" class="deck-nav deck-nav-prev" id="prevBtn" aria-label="Previous clip">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="14,6 8,12 14,18"/></svg>
+  </button>
+  <button type="button" class="deck-nav deck-nav-next" id="nextBtn" aria-label="Next clip">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="10,6 16,12 10,18"/></svg>
+  </button>
+
+  <div class="deck-top-bar">
+    <div class="deck-top-left">
+      <a class="back-link" href="index.html">← Back to topics</a>
+      <div class="scene-title" id="sceneTitle"></div>
+      <div class="clip-counter" id="clipCounter"></div>
+    </div>
+    <div class="deck-top-right">
+      <button id="autoplayBtn" type="button">Autoplay: OFF</button>
+    </div>
+  </div>
+
+  <div class="deck-controls">
+    <div class="progress-container">
+      <div class="progress" id="progress"></div>
+    </div>
+  </div>
+
+  <div class="deck-bottom-label" id="bottomLabel"></div>
+
+  <script src="js/manifest.js"></script>
+  <script src="js/deck.js"></script>
+</body>
+</html>

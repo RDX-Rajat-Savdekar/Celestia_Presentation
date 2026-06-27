@@ -1,215 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Entry point: Celestia VR technical presentation homepage -->
   <meta charset="UTF-8">
-  <title>Video Slide Deck</title>
-
-  <style>
-    body {
-      margin: 0;
-      background: black;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    video {
-      width: 90%;
-      max-height: 90vh;
-    }
-
-    .controls {
-      position: absolute;
-      bottom: 30px;
-      width: 80%;
-    }
-
-    .progress-container {
-      width: 100%;
-      height: 6px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-
-    .progress {
-      height: 100%;
-      width: 0%;
-      background: white;
-      transition: width 0.1s linear;
-    }
-
-    .top-bar {
-      position: absolute;
-      top: 20px;
-      color: white;
-      font-family: Arial;
-      font-size: 14px;
-      display: flex;
-      justify-content: space-between;
-      width: 80%;
-    }
-
-    button {
-      background: rgba(255,255,255,0.1);
-      color: white;
-      border: 1px solid white;
-      padding: 6px 10px;
-      cursor: pointer;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Celestia VR — Rendering Pipeline</title>
+  <meta name="description" content="Interactive overview of the CelestiaVR rendering pipeline — 6 Manim scenes on sphere projection, star filtering, coordinates, color, and search.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Celestia VR — Rendering Pipeline">
+  <meta property="og:description" content="Jump to any topic in the CelestiaVR technical presentation — GPU star field rendering for Meta Quest 3.">
+  <meta property="og:image" content="https://rdx-rajat-savdekar.github.io/Celestia_Presentation/posters/scene0.jpg">
+  <meta property="og:url" content="https://rdx-rajat-savdekar.github.io/Celestia_Presentation/">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="posters/scene0.jpg">
+  <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
 
-  <video id="player" muted></video>
+  <main class="home">
+    <header class="home-header">
+      <h1>Celestia VR</h1>
+      <p class="subtitle">Rendering pipeline — technical presentation</p>
+    </header>
 
-  <div class="top-bar">
-    <div id="label"></div>
-    <button id="autoplayBtn">Autoplay: OFF</button>
-  </div>
-
-  <div class="controls">
-    <div class="progress-container">
-      <div class="progress" id="progress"></div>
+    <div class="hint-banner" role="note">
+      <span class="hint-desktop">Hover cards to preview · Click to watch full scene</span>
+      <span class="hint-touch">Tap a scene to watch</span>
     </div>
-  </div>
 
-<script>
-const videos = [
-  "scene0/S0_CelestiaLogo.mp4",
+    <div class="full-deck-cta">
+      <a href="deck.html?full=1&amp;autoplay=1">Watch full presentation →</a>
+    </div>
 
-  "scene1/S1_Clip1_Immersion.mp4",
-  "scene1/S1_Clip2_Abstraction.mp4",
-  "scene1/S1_Clip3_Fold.mp4",
-  "scene1/S1_Clip4_SphereSolution.mp4",
+    <div class="scene-grid" id="sceneGrid"></div>
+  </main>
 
-  "scene2/S2_Clip1_DataOverload.mp4",
-  "scene2/S2_Clip2_ApparentMagnitude.mp4",
-  "scene2/S2_Clip3_TheFilter.mp4",
-  "scene2/S2_Clip4_OptimizedSky.mp4",
-
-  "scene3/S3_Clip1_CelestialGrid.mp4",
-  "scene3/S3_Clip2_ThePipeline.mp4",
-  "scene3/S3_Clip3_GreatMigration.mp4",
-
-  "scene4/S4_Clip1_Temperature.mp4",
-  "scene4/S4_Clip2_BVIndex.mp4",
-  "scene4/S4_Clip3_ColorWash.mp4",
-  "scene4/S4_Clip4_Twinkle.mp4",
-
-  "scene5/S5_Clip1_GraphData.mp4",
-  "scene5/S5_Clip2_3DGraph.mp4",
-  "scene5/S5_Clip3_Octree.mp4"
-];
-
-
-let index = 0;
-let autoplay = false;
-
-const player = document.getElementById("player");
-const label = document.getElementById("label"); // top label
-const progress = document.getElementById("progress");
-const autoplayBtn = document.getElementById("autoplayBtn");
-
-// 👉 NEW bottom label
-const bottomLabel = document.createElement("div");
-bottomLabel.style.position = "absolute";
-bottomLabel.style.bottom = "10px";
-bottomLabel.style.color = "white";
-bottomLabel.style.fontFamily = "Arial";
-bottomLabel.style.fontSize = "16px";
-bottomLabel.style.opacity = "0.8";
-document.body.appendChild(bottomLabel);
-
-// Group videos by scene
-const sceneMap = {};
-videos.forEach((v) => {
-  const scene = v.split("/")[0]; // scene1
-  if (!sceneMap[scene]) sceneMap[scene] = [];
-  sceneMap[scene].push(v);
-});
-
-function getMeta(path) {
-  const [sceneFolder, file] = path.split("/");
-  
-  const sceneNumber = sceneFolder.replace("scene", "");
-  
-  // Example: S2_Clip3_TheFilter.mp4
-  const parts = file.replace(".mp4", "").split("_");
-
-  let clipNumber = 1;
-  let clipName = "";
-
-  if (parts.length >= 3) {
-    clipNumber = parts[1].replace("Clip", "");
-    clipName = parts.slice(2).join(" ");
-  } else {
-    // fallback for logo
-    clipName = parts.slice(1).join(" ");
-  }
-
-  const totalClips = sceneMap[sceneFolder].length;
-
-  return {
-    sceneNumber,
-    clipNumber,
-    totalClips,
-    clipName
-  };
-}
-
-function loadVideo(i) {
-  player.src = videos[i];
-  player.play();
-
-  label.innerText = `${i + 1} / ${videos.length}`;
-
-  const meta = getMeta(videos[i]);
-
-  bottomLabel.innerText =
-    `Scene ${meta.sceneNumber} • Clip ${meta.clipNumber} / ${meta.totalClips} • ${meta.clipName}`;
-}
-
-// navigation
-document.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowRight") {
-    index = (index + 1) % videos.length;
-    loadVideo(index);
-  } else if (e.key === "ArrowLeft") {
-    index = (index - 1 + videos.length) % videos.length;
-    loadVideo(index);
-  } else if (e.key === " ") {
-    player.paused ? player.play() : player.pause();
-  }
-});
-
-// progress
-player.addEventListener("timeupdate", () => {
-  if (player.duration) {
-    const percent = (player.currentTime / player.duration) * 100;
-    progress.style.width = percent + "%";
-  }
-});
-
-// autoplay
-player.addEventListener("ended", () => {
-  if (autoplay) {
-    index = (index + 1) % videos.length;
-    loadVideo(index);
-  }
-});
-
-autoplayBtn.addEventListener("click", () => {
-  autoplay = !autoplay;
-  autoplayBtn.innerText = `Autoplay: ${autoplay ? "ON" : "OFF"}`;
-});
-
-// init
-loadVideo(index);
-</script>
-
+  <script src="js/manifest.js"></script>
+  <script src="js/home.js"></script>
 </body>
 </html>
